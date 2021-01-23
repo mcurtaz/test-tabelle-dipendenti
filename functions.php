@@ -1,6 +1,40 @@
 <?php
 
-function getAll($conn){
+/* la funzione getAll() utilizzerà le chiavi per aggregare i dati restituiti dal db. restituirà un array con questa struttura:
+$result[
+    "nome dipendente" = [
+        "giorno" = [
+            E = data entrata,
+            U = data uscita,
+            TOT = ore lavorate,
+            P = ore di pausa
+        ],
+        "giorno 2" = [
+            E = data entrata,
+            U = data uscita,
+            TOT = ore lavorate,
+            P = ore di pausa
+        ]
+    ],
+    "nome dipendente 2" = [
+        "giorno" = [
+            E = data entrata,
+            U = data uscita,
+            TOT = ore lavorate,
+            P = ore di pausa
+        ],
+        "giorno 2" = [
+            E = data entrata,
+            U = data uscita,
+            TOT = ore lavorate,
+            P = ore di pausa
+        ]
+    ]
+];
+
+*/
+
+function getAll($conn){ // come argomento la connessione al db
     $result = array();
 
     $dipendenti = $conn -> query("SELECT * FROM dipendente");
@@ -10,6 +44,7 @@ function getAll($conn){
         $nome = $rowDipendente['nome'] . " " . $rowDipendente['cognome'];
         $result[$nome] = array();
 
+        // ciclo su tutte le entrate. Ognuna sarà salvata in un array che avrà come chiave il giorno. Per ognuno poi trovo la timbratura di uscita e calcolo le ore lavorate.
         $entrate = $conn -> query("SELECT * FROM timbrata WHERE dipendente_id='" . $rowDipendente['id'] . "' AND verso='E'");
 
         while($rowEntrata = $entrate -> fetch_assoc()){
@@ -18,6 +53,7 @@ function getAll($conn){
             $giorno = $entrata -> format("d-m-Y");
             $ore = 0;
             
+            // se esiste già un orario di entrata per quella data controllo in modo che E sia la prima timbratura della giornata
             if(isset($result[$nome][$giorno]["E"])){
 
                 $oldEntrata = new DateTime($result[$nome][$giorno]["E"]);
@@ -30,12 +66,14 @@ function getAll($conn){
                 $result[$nome][$giorno]["E"] = $entrata -> format('Y-m-d H:i:s');
             }
 
+            // trovo la prima (MIN) tibrata di quel dipendente con verso U successiva (>) all ora di entrata.
             $queryUscita = $conn -> query("SELECT MIN(dataora) AS uscita FROM timbrata WHERE  dataora>'" . $rowEntrata['dataora'] . "' AND verso='U' AND dipendente_id='" . $rowEntrata['dipendente_id'] . "' LIMIT 1");
 
             $rowUscita = $queryUscita -> fetch_assoc();
 
             $uscita = new DateTime($rowUscita['uscita']);
 
+            // se c'è già un uscita per quel giorno (fa fede il giorno di entrata anche se esco dopo mezzanotte le ore saranno conteggiate sul giorno di inizio del turno) controllo di mettere in U l'ultima uscita
             if(isset($result[$nome][$giorno]["U"])){
 
                 $oldUscita = new DateTime($result[$nome][$giorno]["U"]);
@@ -50,6 +88,7 @@ function getAll($conn){
 
             $ore = $entrata -> diff($uscita);
 
+            // sommo le ore lavorate
             if(isset($result[$nome][$giorno]["TOT"])){
 
                 $oldOre = $result[$nome][$giorno]["TOT"];
@@ -62,6 +101,7 @@ function getAll($conn){
             }
         }
 
+        // avendo tutti i dati rifaccio un ciclo e per ogni giorno calcolo le ore di pausa
         foreach($result as $kDipendente => $dipendente){
 
             foreach($dipendente as $kGiorno => $giorno){
@@ -83,6 +123,7 @@ function getAll($conn){
 
 }
 
+// funzioni che date due intervalli di tempo in formato "ore:minuti" sommano o sottraggono e restituisco un valore in formato "ore:minuti"
 function sumHours($h1, $h2){
 
     $ore = explode(':', $h2);

@@ -1,12 +1,15 @@
 $(document).ready(function() {
     buttonsListener();
     printTable1();
+
+    // la tb2 è già nell'html. .datatable() la stilizza e aggiunge funzionalità
     $('#tb2').DataTable({
         'searching': false,
         'paging': false
     });
 });
 
+// la funzione mostra nasconde le tabelle e attiva/disattiva i bottoni corrispondenti
 function buttonsListener(){
 
     $('#show-tb1').click(function(){
@@ -28,6 +31,7 @@ function buttonsListener(){
 }
 
 
+// una chiamata ajax al file che restituisce un json con le righe della tabella da stampare. Poi la funzione dataTable() crea la tabella nell'html
 function printTable1(){
 
     $.ajax({
@@ -38,6 +42,7 @@ function printTable1(){
             $('#tb1').DataTable(
                 {
                     'data': data,
+                    // le due righe disabilitano le funzioni di ricerca e la divisione in pagine della tabella
                     'searching': false,
                     'paging': false
                 });

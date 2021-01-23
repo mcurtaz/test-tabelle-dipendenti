@@ -6,6 +6,7 @@ $user = "pippo";
 $password = "pluto";
 $dbname = "dblibemax";
 
+// apro la connessione al db
 $conn = new mysqli($host, $user, $password, $dbname);
 
 if ($conn && $conn->connect_error){

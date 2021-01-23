@@ -1,11 +1,14 @@
 <?php
+    // il file config crea la connessione al db. in functions ci sono delle funzioni e tutte le query sul db.
     require_once('config.php');
     require_once('functions.php');
 
     $startDate = "2020-11-30";
+    // funzione che restituisce i dati dal database pronti da "stampare"
     $data = getAll($conn);
     $conn -> close();
 
+    // set locale in ita in modo da stampare nomi dei giorni in italiano
     setlocale(LC_TIME, 'it_IT.UTF-8');
 ?>
 
@@ -36,6 +39,7 @@
                 <button class="btn btn-info " id="show-tb2">Tabella Settimana</button>
             </div>
         </div>
+        <!-- tabella creata con ajax e libreria datatable() -->
         <div class="row bg-white rounded" id="tb1-row">
             <div class="col-12 py-2">
                 <table id="tb1" class="table table-striped table-bordered" style="width:100%">
@@ -51,6 +55,7 @@
                 </table>
             </div>
         </div>
+        <!-- tabella "stampata" in html e poi stilizzata con datatable -->
         <div class="row d-none bg-white rounded" id="tb2-row">
             <div class="col-12 py-2">
                 <table id="tb2" class="table table-striped table-bordered" style="width:100%">
@@ -60,6 +65,7 @@
                             <?php
                                 $date = new DateTime($startDate);
                                 for ($i=1; $i < 6; $i++) { 
+                                    // stringa con nomi giorni in ita
                                     $giorno = strftime("%a %d", $date -> getTimestamp());
                                     $date -> add(new DateInterval('P1D'));
                                     echo "<th>" . $giorno . "</th>";
@@ -87,6 +93,7 @@
 
                                             echo "<td>" . $dipendente[$giorno]['TOT'] . "</td>";
                                             
+                                            // funzione nel file functions che somma due stringhe di orari "H:i"
                                             $tot = sumHours($tot, $dipendente[$giorno]['TOT']);
 
                                         }else{
